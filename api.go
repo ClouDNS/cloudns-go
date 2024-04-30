@@ -10,7 +10,7 @@ import (
 
 // this is the communicated api endpoint
 const (
-	apiurl = "https://apidev.cloudns.net"
+	apiurl = "https://api.cloudns.net"
 )
 
 // this is how we will do requests
@@ -19,7 +19,7 @@ func apireq(path string, body interface{}) (*resty.Response, error) {
 	client := resty.New()
 	client.R().SetHeader("Content-Type", "application/json")
 	client.R().SetHeader("Accept", "application/json")
-	client.R().SetHeader("User-Agent", "github.com/Venkoul99/cloudns-go")
+	client.R().SetHeader("User-Agent", "github.com/ClouDNS/cloudns-go")
 	return client.R().SetBody(body).Post(fullurl)
 }
 

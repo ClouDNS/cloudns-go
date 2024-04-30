@@ -1,8 +1,8 @@
-module github.com/Venkoul99/cloudns-go
+module github.com/ClouDNS/cloudns-go
 
 go 1.22.2
 
-replace github.com/ppmathis/cloudns-go => github.com/venkoul99/cloudns-go v1.0.1
+replace github.com/ppmathis/cloudns-go => github.com/ClouDNS/cloudns-go v1.0.1
 
 require (
 	github.com/go-resty/resty/v2 v2.12.0
