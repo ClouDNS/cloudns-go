@@ -4,6 +4,7 @@ package cloudns
 import (
 	"encoding/json"
 	"errors"
+	"fmt"
 	"strconv"
 
 	"github.com/tidwall/gjson"
@@ -223,24 +224,40 @@ func (z Zone) Read(a *Apiaccess) (Zone, error) {
 		Ns:           z.Ns,
 		Master:       z.Master,
 	}
+
 	resp, err := cr.read()
-	var zlint []retzone
-	if err == nil {
-		errmsg, isapierr := checkapierr(resp.Body())
-		if isapierr {
-			return z, errors.New(errmsg)
-		}
-		junerr := json.Unmarshal(resp.Body(), &zlint)
-		if junerr == nil {
-			var rz = Zone{
-				Domain: zlint[0].Domain,
-				Ztype:  zlint[0].Ztype,
-				Ns:     z.Ns,
-			}
-			return rz, junerr
-		}
+	if err != nil {
+		return z, err
 	}
-	return z, err
+
+	errmsg, isapierr := checkapierr(resp.Body())
+	if isapierr {
+		return z, errors.New(errmsg)
+	}
+
+	var zlint []retzone
+	body := resp.Body()
+
+	if len(body) == 0 {
+		return z, errors.New("empty response body")
+	}
+
+	junerr := json.Unmarshal(body, &zlint)
+	if junerr != nil {
+		return z, fmt.Errorf("error unmarshalling response: %v", junerr)
+	}
+
+	if len(zlint) == 0 {
+		return z, errors.New("no zones returned in response")
+	}
+
+	rz := Zone{
+		Domain: zlint[0].Domain,
+		Ztype:  zlint[0].Ztype,
+		Ns:     z.Ns,
+	}
+
+	return rz, nil
 }
 
 // Update a zone [dummy]
