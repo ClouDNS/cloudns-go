@@ -251,11 +251,27 @@ func (z Zone) Read(a *Apiaccess) (Zone, error) {
 		return z, errors.New("no zones returned in response")
 	}
 
-	rz := Zone{
-		Domain: zlint[0].Domain,
-		Ztype:  zlint[0].Ztype,
-		Ns:     z.Ns,
+	var matchedZone *retzone
+	for _, zone := range zlint {
+		if zone.Domain == z.Domain {
+			matchedZone = &zone
+			break
+		}
 	}
+
+	if matchedZone == nil {
+		return z, fmt.Errorf("zone with domain %s not found", z.Domain)
+	}
+
+	nsList := []string{matchedZone.Ns}
+
+	rz := Zone{
+		Domain: matchedZone.Domain,
+		Ztype:  matchedZone.Ztype,
+		Ns:     nsList,
+	}
+
+	fmt.Printf("Parsed zone: Domain: %s, Type: %s\n", rz.Domain, rz.Ztype)
 
 	return rz, nil
 }

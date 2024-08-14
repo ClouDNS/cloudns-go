@@ -36,6 +36,7 @@ type retzone struct {
 	Domain string `json:"name"`
 	Ztype  string `json:"type"`
 	Master string `json:"master-ip,omitempty"`
+	Ns     string `json:"ns,omitempty"`
 }
 
 // this function will check a byte array for the error message from ClouDNS
