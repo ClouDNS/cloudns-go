@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"log"
 	"strconv"
 
 	"github.com/tidwall/gjson"
@@ -709,6 +710,58 @@ func (r Record) Destroy(a *Apiaccess) (Record, error) {
 		Record:       r.Record,
 	}
 	resp, err := inr.destroy()
+	if err == nil {
+		errmsg, isapierr := checkapierr(resp.Body())
+		if isapierr {
+			return r, errors.New(errmsg)
+		}
+	}
+	return r, err
+}
+
+func (r activatefailover) Create(a *Apiaccess) (activatefailover, error) {
+	log.Printf("Authid: %d, Subauthid: %d, Domain: %s, RecordId: %s", a.Authid, a.Subauthid, r.Domain, r.RecordId)
+
+	inr := activatefailover{
+		Authid:           a.Authid,
+		Subauthid:        a.Subauthid,
+		Authpassword:     a.Authpassword,
+		Domain:           r.Domain,
+		RecordId:         r.RecordId,
+		FailoverType:     r.FailoverType,
+		DownEventHandler: r.DownEventHandler,
+		UpEventHandler:   r.UpEventHandler,
+		MainIP:           r.MainIP,
+		BackupIp1:        r.BackupIp1,
+		BackupIp2:        r.BackupIp2,
+		BackupIp3:        r.BackupIp3,
+		BackupIp4:        r.BackupIp4,
+		BackupIp5:        r.BackupIp5,
+		MonitoringRegion: r.MonitoringRegion,
+		Host:             r.Host,
+		Port:             r.Port,
+		Path:             r.Path,
+		Content:          r.Content,
+		QueryType:        r.QueryType,
+		QueryResponse:    r.QueryResponse,
+		CheckPeriod:      r.CheckPeriod,
+		NotificationMail: r.NotificationMail,
+		DeactivateRecord: r.DeactivateRecord,
+		LatencyLimit:     r.LatencyLimit,
+		Timeout:          r.Timeout,
+		HttpRequestType:  r.HttpRequestType,
+	}
+
+	if r.FailoverType == 1 || r.FailoverType == 2 || r.FailoverType == 3 || r.FailoverType == 14 {
+		// Type: PING
+		inr.Timeout = r.Timeout
+		inr.LatencyLimit = r.LatencyLimit
+		inr.DownEventHandler = r.DownEventHandler
+		inr.UpEventHandler = r.UpEventHandler
+		inr.NotificationMail = r.NotificationMail
+	}
+
+	resp, err := inr.create()
 	if err == nil {
 		errmsg, isapierr := checkapierr(resp.Body())
 		if isapierr {

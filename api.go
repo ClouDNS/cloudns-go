@@ -391,3 +391,89 @@ func (z createzone) destroy() (*resty.Response, error) {
 	}
 	return apireq(path, rm)
 }
+
+type failoverrecord struct {
+	ID               string  `json:"id"`
+	Domain           string  `json:"domain-name"`
+	RecordId         string  `json:"record-id"`
+	FailoverType     int     `json:"check_type"`
+	DownEventHandler int     `json:"down_event_handler"`
+	UpEventHandler   int     `json:"up_event_handler"`
+	MainIP           string  `json:"main_ip"`
+	BackupIp1        string  `json:"backup_ip_1"`
+	BackupIp2        string  `json:"backup_ip_2,omitempty"`
+	BackupIp3        string  `json:"backup_ip_3,omitempty"`
+	BackupIp4        string  `json:"backup_ip_4,omitempty"`
+	BackupIp5        string  `json:"backup_ip_5,omitempty"`
+	MonitoringRegion string  `json:"monitoring_region,omitempty"`
+	Host             string  `json:"host,omitempty"`
+	Port             int     `json:"port,omitempty"`
+	Path             string  `json:"path,omitempty"`
+	Content          string  `json:"content,omitempty"`
+	QueryType        int     `json:"query_type,omitempty"`
+	QueryResponse    int     `json:"query_response,omitempty"`
+	CheckPeriod      int     `json:"check_period,omitempty"`
+	NotificationMail string  `json:"notification_mail,omitempty"`
+	DeactivateRecord int     `json:"deactivate_record,omitempty"`
+	LatencyLimit     float32 `json:"latency_limit,omitempty"`
+	Timeout          int     `json:"timeout,omitempty"`
+	HttpRequestType  string  `json:"http_request_type,omitempty"`
+}
+
+type activatefailover struct {
+	Authid           int     `json:"auth-id,omitempty"`
+	Subauthid        int     `json:"sub-auth-id,omitempty"`
+	Authpassword     string  `json:"auth-password"`
+	Domain           string  `json:"domain-name"`
+	RecordId         string  `json:"record-id"`
+	FailoverType     int     `json:"check_type"`
+	DownEventHandler int     `json:"down_event_handler"`
+	UpEventHandler   int     `json:" up_event_handler"`
+	MainIP           string  `json:"main_ip"`
+	BackupIp1        string  `json:"backup_ip_1"`
+	BackupIp2        string  `json:"backup_ip_2,omitempty"`
+	BackupIp3        string  `json:"backup_ip_3,omitempty"`
+	BackupIp4        string  `json:"backup_ip_4,omitempty"`
+	BackupIp5        string  `json:"backup_ip_5,omitempty"`
+	MonitoringRegion string  `json:"monitoring_region,omitempty"`
+	Host             string  `json:"host,omitempty"`
+	Port             int     `json:"port,omitempty"`
+	Path             string  `json:"path,omitempty"`
+	Content          string  `json:"content,omitempty"`
+	QueryType        int     `json:"query_type,omitempty"`
+	QueryResponse    int     `json:"query_response,omitempty"`
+	CheckPeriod      int     `json:"check_period,omitempty"`
+	NotificationMail string  `json:"notification_mail,omitempty"`
+	DeactivateRecord int     `json:"deactivate_record,omitempty"`
+	LatencyLimit     float32 `json:"latency_limit,omitempty"`
+	Timeout          int     `json:"timeout,omitempty"`
+	HttpRequestType  string  `json:"http_request_type,omitempty"`
+}
+
+type failover struct {
+	Authid       int    `json:"auth-id,omitempty"`
+	Subauthid    int    `json:"sub-auth-id,omitempty"`
+	Authpassword string `json:"auth-password"`
+	Domain       string `json:"domain-name"`
+	RecordId     string `json:"record-id"`
+}
+
+func (r activatefailover) create() (*resty.Response, error) {
+	const path = "/dns/add-failover.json"
+	return apireq(path, r)
+}
+
+func (r activatefailover) update() (*resty.Response, error) {
+	const path = "/dns/mod-failover.json"
+	return apireq(path, r)
+}
+
+func (r activatefailover) destroy() (*resty.Response, error) {
+	const path = "/dns/delete-failover.json"
+	return apireq(path, r)
+}
+
+func (r failover) get() (*resty.Response, error) {
+	const path = "/dns/failover-settings.json"
+	return apireq(path, r)
+}
