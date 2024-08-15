@@ -752,14 +752,15 @@ func (r activatefailover) Create(a *Apiaccess) (activatefailover, error) {
 		HttpRequestType:  r.HttpRequestType,
 	}
 
-	if r.FailoverType == 1 || r.FailoverType == 2 || r.FailoverType == 3 || r.FailoverType == 14 {
-		// Type: PING
-		inr.Timeout = r.Timeout
-		inr.LatencyLimit = r.LatencyLimit
-		inr.DownEventHandler = r.DownEventHandler
-		inr.UpEventHandler = r.UpEventHandler
-		inr.NotificationMail = r.NotificationMail
-	}
+	/*
+		if r.FailoverType == 1 || r.FailoverType == 2 || r.FailoverType == 3 || r.FailoverType == 14 {
+			inr.Timeout = r.Timeout
+			inr.LatencyLimit = r.LatencyLimit
+		} else if r.FailoverType == 4 || r.FailoverType == 5 {
+			inr.HttpRequestType = r.HttpRequestType
+			inr.LatencyLimit = r.LatencyLimit
+		}
+	*/
 
 	resp, err := inr.create()
 	if err == nil {

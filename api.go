@@ -8,12 +8,10 @@ import (
 	"github.com/go-resty/resty/v2"
 )
 
-// this is the communicated api endpoint
 const (
 	apiurl = "https://api.cloudns.net"
 )
 
-// this is how we will do requests
 func apireq(path string, body interface{}) (*resty.Response, error) {
 	fullurl := strings.Join([]string{apiurl, path}, "")
 	client := resty.New()
@@ -23,15 +21,11 @@ func apireq(path string, body interface{}) (*resty.Response, error) {
 	return client.R().SetBody(body).Post(fullurl)
 }
 
-// Apierr we should be able to json.Unmarshal this from an *resty.Response.Body(),
-// if there was an API error, see https://www.cloudns.net/wiki/article/45/
 type apierr struct {
 	Status string `json:"status"`
 	Desc   string `json:"statusDescription"`
 }
 
-// for some reason cloudns returns zones in a different way then they take them
-// they also return two more fields: zone and status, I am not sure yet what to do with them :/
 type retzone struct {
 	Domain string `json:"name"`
 	Ztype  string `json:"type"`
@@ -39,7 +33,6 @@ type retzone struct {
 	Ns     string `json:"ns,omitempty"`
 }
 
-// this function will check a byte array for the error message from ClouDNS
 func checkapierr(d []byte) (string, bool) {
 	var status apierr
 	err := json.Unmarshal(d, &status)
@@ -49,19 +42,16 @@ func checkapierr(d []byte) (string, bool) {
 	return "", false
 }
 
-// logincheck checks if the credentials work, see https://www.cloudns.net/wiki/article/45/
 func (c Apiaccess) logincheck() (*resty.Response, error) {
 	const path = "/dns/login.json"
 	return apireq(path, c)
 }
 
-// availablettl gets the currently available TTL values, see https://www.cloudns.net/wiki/article/153/
 func (c Apiaccess) availablettl() (*resty.Response, error) {
 	const path = "/dns/get-available-ttl.json"
 	return apireq(path, c)
 }
 
-// types lists available types from api, see https://www.cloudns.net/wiki/article/157/
 type rectypes struct {
 	Authid       int    `json:"auth-id,omitempty"`
 	Subauthid    int    `json:"sub-auth-id,omitempty"`
@@ -70,13 +60,11 @@ type rectypes struct {
 	Master       string `json:"master-ip,omitempty"`
 }
 
-// Availabletype gets the currently available Record-Types
 func (r rectypes) availabletype() (*resty.Response, error) {
 	const path = "/dns/get-available-record-types.json"
 	return apireq(path, r)
 }
 
-// reclist lists records for a domain, see https://www.cloudns.net/wiki/article/57/
 type reclist struct {
 	Authid       int    `json:"auth-id,omitempty"`
 	Subauthid    int    `json:"sub-auth-id,omitempty"`
@@ -86,15 +74,11 @@ type reclist struct {
 	Rtype        string `json:"type,omitempty"`
 }
 
-// list records
 func (r reclist) lsrec() (*resty.Response, error) {
 	const path = "/dns/records.json"
 	return apireq(path, r)
 }
 
-// returning records has the same issue as returning zones
-// they come back in a completely different format
-// in this case we currently ignore failover, status and dynamicurl_status
 type retrec struct {
 	ID                 string  `json:"id"`
 	Host               string  `json:"host"`
@@ -154,7 +138,6 @@ type retrec struct {
 	OS                 string  `json:"os,omitempty"`
 }
 
-// zonelist struct to lists zones, see https://www.cloudns.net/wiki/article/50/
 type zonelist struct {
 	Authid       int    `json:"auth-id,omitempty"`
 	Subauthid    int    `json:"sub-auth-id,omitempty"`
@@ -165,13 +148,11 @@ type zonelist struct {
 	Gid          int    `json:"group-id,omitempty"`
 }
 
-// list zones
 func (z zonelist) lszone() (*resty.Response, error) {
 	const path = "/dns/list-zones.json"
 	return apireq(path, z)
 }
 
-// createrec stuct to create a record, see https://www.cloudns.net/wiki/article/58/
 type createrec struct {
 	Authid             int     `json:"auth-id,omitempty"`
 	Subauthid          int     `json:"sub-auth-id,omitempty"`
@@ -234,9 +215,7 @@ type createrec struct {
 	OS                 string  `json:"os,omitempty"`
 }
 
-// Read returns the created records (map[string]Returnrec in response)
 func (r createrec) read() (*resty.Response, error) {
-	// this should give us a list containing this exact record
 	listrec := reclist{
 		Authid:       r.Authid,
 		Subauthid:    r.Subauthid,
@@ -247,13 +226,11 @@ func (r createrec) read() (*resty.Response, error) {
 	return listrec.lsrec()
 }
 
-// create actually creates a record
 func (r createrec) create() (*resty.Response, error) {
 	const path = "/dns/add-record.json"
 	return apireq(path, r)
 }
 
-// updaterec is the alternative record struct, used here https://www.cloudns.net/wiki/article/60/
 type updaterec struct {
 	Authid             int     `json:"auth-id,omitempty"`
 	Subauthid          int     `json:"sub-auth-id,omitempty"`
@@ -316,19 +293,16 @@ type updaterec struct {
 	OS                 string  `json:"os,omitempty"`
 }
 
-// Update updates an existing record
 func (r updaterec) update() (*resty.Response, error) {
 	const path = "/dns/mod-record.json"
 	return apireq(path, r)
 }
 
-// Destroy destroys the record
 func (r updaterec) destroy() (*resty.Response, error) {
 	const path = "/dns/delete-record.json"
 	return apireq(path, r)
 }
 
-// createzone creates a zone, see https://www.cloudns.net/wiki/article/48/
 type createzone struct {
 	Authid       int      `json:"auth-id,omitempty"`
 	Subauthid    int      `json:"sub-auth-id,omitempty"`
@@ -339,7 +313,6 @@ type createzone struct {
 	Master       string   `json:"master-ip,omitempty"`
 }
 
-// read should return the exact zone from the list
 func (z createzone) read() (*resty.Response, error) {
 	listzone := zonelist{
 		Authid:       z.Authid,
@@ -352,13 +325,11 @@ func (z createzone) read() (*resty.Response, error) {
 	return listzone.lszone()
 }
 
-// create registers a new DNS zone
 func (z createzone) create() (*resty.Response, error) {
 	const path = "/dns/register.json"
 	return apireq(path, z)
 }
 
-// zone update/destroy struct, see https://www.cloudns.net/wiki/article/135/ or https://www.cloudns.net/wiki/article/49/
 type zupdate struct {
 	Authid       int    `json:"auth-id,omitempty"`
 	Subauthid    int    `json:"sub-auth-id,omitempty"`
@@ -366,10 +337,8 @@ type zupdate struct {
 	Domain       string `json:"domain-name"`
 }
 
-// Update in this context does not make much sense, but we implement it anyway
 func (z createzone) update() (*resty.Response, error) {
-	// not sure what this does ...
-	// see https://www.cloudns.net/wiki/article/135/
+
 	const path = "/dns/update-zone.json"
 	up := zupdate{
 		Authid:       z.Authid,
@@ -380,7 +349,6 @@ func (z createzone) update() (*resty.Response, error) {
 	return apireq(path, up)
 }
 
-// Destroy removes a zone
 func (z createzone) destroy() (*resty.Response, error) {
 	const path = "/dns/delete.json"
 	rm := zupdate{
@@ -428,7 +396,7 @@ type activatefailover struct {
 	RecordId         string  `json:"record-id"`
 	FailoverType     int     `json:"check_type"`
 	DownEventHandler int     `json:"down_event_handler"`
-	UpEventHandler   int     `json:" up_event_handler"`
+	UpEventHandler   int     `json:"up_event_handler"`
 	MainIP           string  `json:"main_ip"`
 	BackupIp1        string  `json:"backup_ip_1"`
 	BackupIp2        string  `json:"backup_ip_2,omitempty"`
@@ -459,7 +427,7 @@ type failover struct {
 }
 
 func (r activatefailover) create() (*resty.Response, error) {
-	const path = "/dns/add-failover.json"
+	const path = "/dns/failover-activate.json"
 	return apireq(path, r)
 }
 
