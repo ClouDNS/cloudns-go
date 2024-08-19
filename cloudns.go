@@ -5,7 +5,6 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"log"
 	"strconv"
 
 	"github.com/tidwall/gjson"
@@ -719,10 +718,10 @@ func (r Record) Destroy(a *Apiaccess) (Record, error) {
 	return r, err
 }
 
-func (r activatefailover) Create(a *Apiaccess) (activatefailover, error) {
-	log.Printf("Authid: %d, Subauthid: %d, Domain: %s, RecordId: %s", a.Authid, a.Subauthid, r.Domain, r.RecordId)
+// FAILOVERS
 
-	inr := activatefailover{
+func newActivateFailover(r Failover, a *Apiaccess) ActivateFailover {
+	return ActivateFailover{
 		Authid:           a.Authid,
 		Subauthid:        a.Subauthid,
 		Authpassword:     a.Authpassword,
@@ -738,36 +737,124 @@ func (r activatefailover) Create(a *Apiaccess) (activatefailover, error) {
 		BackupIp4:        r.BackupIp4,
 		BackupIp5:        r.BackupIp5,
 		MonitoringRegion: r.MonitoringRegion,
-		Host:             r.Host,
-		Port:             r.Port,
-		Path:             r.Path,
-		Content:          r.Content,
-		QueryType:        r.QueryType,
-		QueryResponse:    r.QueryResponse,
+		Host:             r.CheckSettings.Host,
+		Port:             r.CheckSettings.Port,
+		Path:             r.CheckSettings.Path,
+		Content:          r.CheckSettings.Content,
+		QueryType:        r.CheckSettings.QueryType,
+		QueryResponse:    r.CheckSettings.QueryResponse,
 		CheckPeriod:      r.CheckPeriod,
 		NotificationMail: r.NotificationMail,
+		State:            r.State,
+		Status:           r.Status,
 		DeactivateRecord: r.DeactivateRecord,
-		LatencyLimit:     r.LatencyLimit,
-		Timeout:          r.Timeout,
-		HttpRequestType:  r.HttpRequestType,
+		LatencyLimit:     r.CheckSettings.LatencyLimit,
+		Timeout:          r.CheckSettings.Timeout,
+		CheckRegion:      r.CheckRegion,
+		HttpRequestType:  r.CheckSettings.HttpRequestType,
 	}
+}
 
-	/*
-		if r.FailoverType == 1 || r.FailoverType == 2 || r.FailoverType == 3 || r.FailoverType == 14 {
-			inr.Timeout = r.Timeout
-			inr.LatencyLimit = r.LatencyLimit
-		} else if r.FailoverType == 4 || r.FailoverType == 5 {
-			inr.HttpRequestType = r.HttpRequestType
-			inr.LatencyLimit = r.LatencyLimit
-		}
-	*/
+func (f Failover) Create(a *Apiaccess) (Failover, error) {
+	inf := newActivateFailover(f, a)
 
-	resp, err := inr.create()
+	resp, err := inf.create()
 	if err == nil {
 		errmsg, isapierr := checkapierr(resp.Body())
 		if isapierr {
-			return r, errors.New(errmsg)
+			return f, errors.New(errmsg)
 		}
 	}
-	return r, err
+	return f, err
+}
+
+func (f Failover) Update(a *Apiaccess) (Failover, error) {
+	inf := newActivateFailover(f, a)
+
+	resp, err := inf.update()
+	if err == nil {
+		errmsg, isapierr := checkapierr(resp.Body())
+		if isapierr {
+			return f, errors.New(errmsg)
+		}
+	}
+	return f, err
+}
+
+func (f Failover) Read(a *Apiaccess) (Failover, error) {
+	inf := newActivateFailover(f, a)
+
+	resp, err := inf.get()
+	if err != nil {
+		return f, err
+	}
+
+	body := resp.Body()
+
+	if len(body) == 0 {
+		return f, errors.New("empty response body")
+	}
+	fmt.Printf("Raw response body: %s\n", string(body))
+
+	var failoverData FailoverData
+	err = json.Unmarshal(body, &failoverData)
+	if err != nil {
+		return f, fmt.Errorf("error unmarshalling response: %v", err)
+	}
+
+	fmt.Printf("Parsed Failover Data: %+v\n", failoverData)
+
+	f.FailoverType = failoverData.FailoverType
+	f.DownEventHandler = failoverData.DownEventHandler
+	f.UpEventHandler = failoverData.UpEventHandler
+	f.MainIP = failoverData.MainIP
+
+	if f.FailoverType == "1" {
+		f.DeactivateRecord = failoverData.DeactivateRecord
+		f.State = failoverData.State
+		f.Status = failoverData.Status
+		f.CheckSettings.Timeout = defaultIfEmpty(failoverData.CheckSettings.Timeout)
+	} else {
+		f.BackupIp1 = defaultIfEmpty(failoverData.BackupIp1)
+		f.BackupIp2 = defaultIfEmpty(failoverData.BackupIp2)
+		f.BackupIp3 = defaultIfEmpty(failoverData.BackupIp3)
+		f.BackupIp4 = defaultIfEmpty(failoverData.BackupIp4)
+		f.BackupIp5 = defaultIfEmpty(failoverData.BackupIp5)
+		f.MonitoringRegion = defaultIfEmpty(failoverData.MonitoringRegion)
+		f.CheckPeriod = defaultIfEmpty(failoverData.CheckPeriod)
+		f.CheckRegion = failoverData.CheckRegion
+		f.NotificationMail = defaultIfEmpty(failoverData.NotificationMail)
+		f.CheckSettings.Host = defaultIfEmpty(failoverData.CheckSettings.Host)
+		f.CheckSettings.Port = defaultIfEmpty(failoverData.CheckSettings.Port)
+		f.CheckSettings.Path = defaultIfEmpty(failoverData.CheckSettings.Path)
+		f.CheckSettings.Content = defaultIfEmpty(failoverData.CheckSettings.Content)
+		f.CheckSettings.QueryType = defaultIfEmpty(failoverData.CheckSettings.QueryType)
+		f.CheckSettings.QueryResponse = defaultIfEmpty(failoverData.CheckSettings.QueryResponse)
+		f.CheckSettings.LatencyLimit = defaultIfEmpty(failoverData.CheckSettings.LatencyLimit)
+		f.CheckSettings.HttpRequestType = defaultIfEmpty(failoverData.CheckSettings.HttpRequestType)
+	}
+
+	fmt.Printf("Here is the returned record: %+v\n", f)
+
+	return f, nil
+}
+
+func (f Failover) Delete(a *Apiaccess) (Failover, error) {
+	inf := newActivateFailover(f, a)
+
+	resp, err := inf.destroy()
+	if err == nil {
+		errmsg, isapierr := checkapierr(resp.Body())
+		if isapierr {
+			return f, errors.New(errmsg)
+		}
+	}
+	return f, err
+}
+
+func defaultIfEmpty(value string) string {
+	if value == "" {
+		return ""
+	}
+	return value
 }
