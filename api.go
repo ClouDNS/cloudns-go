@@ -3,6 +3,8 @@ package cloudns
 
 import (
 	"encoding/json"
+	"fmt"
+	"strconv"
 	"strings"
 
 	"github.com/go-resty/resty/v2"
@@ -361,26 +363,24 @@ func (z createzone) destroy() (*resty.Response, error) {
 }
 
 type CheckSettings struct {
-	LatencyLimit    string `json:"latency_limit,omitempty"`
-	Timeout         string `json:"timeout,omitempty"`
-	HttpRequestType string `json:"http_request_type,omitempty"`
-	Host            string `json:"host,omitempty"`
-	Port            string `json:"port,omitempty"`
-	Path            string `json:"path,omitempty"`
-	Content         string `json:"content,omitempty"`
-	QueryResponse   string `json:"query_response,omitempty"`
-	QueryType       string `json:"query_type,omitempty"`
+	LatencyLimit    string     `json:"latency_limit,omitempty"`
+	Timeout         string     `json:"timeout,omitempty"`
+	HttpRequestType string     `json:"http_request_type,omitempty"`
+	Host            string     `json:"host,omitempty"`
+	Port            CustomPort `json:"port,omitempty"`
+	Path            string     `json:"path,omitempty"`
+	Content         string     `json:"content,omitempty"`
+	QueryResponse   string     `json:"query_response,omitempty"`
+	QueryType       string     `json:"query_type,omitempty"`
 }
 
 type Failover struct {
-	ID               string        `json:"id"`
 	Domain           string        `json:"domain-name"`
 	RecordId         string        `json:"record-id"`
 	FailoverType     string        `json:"check_type"`
 	CheckSettings    CheckSettings `json:"check_settings"`
 	MonitoringRegion string        `json:"monitoring_region,omitempty"`
 	CheckPeriod      string        `json:"check_period,omitempty"`
-	Status           string        `json:"status,omitempty"`
 	CheckRegion      string        `json:"checkregion,omitempty"`
 	DownEventHandler string        `json:"down_event_handler"`
 	UpEventHandler   string        `json:"up_event_handler"`
@@ -391,46 +391,39 @@ type Failover struct {
 	BackupIp4        string        `json:"backup_ip_4,omitempty"`
 	BackupIp5        string        `json:"backup_ip_5,omitempty"`
 	NotificationMail string        `json:"notification_mail,omitempty"`
-	State            string        `json:"state,omitempty"`
-	DeactivateRecord string        `json:"deactivate_record,omitempty"`
 }
 
 type ApiFailover struct {
-	ID               string `json:"id"`
-	Domain           string `json:"domain-name"`
-	RecordId         string `json:"record-id"`
-	FailoverType     string `json:"check_type"`
-	Status           string `json:"status,omitempty"`
-	DownEventHandler string `json:"down_event_handler"`
-	UpEventHandler   string `json:"up_event_handler"`
-	MainIP           string `json:"main_ip"`
-	BackupIp1        string `json:"backup_ip_1,omitempty"`
-	BackupIp2        string `json:"backup_ip_2,omitempty"`
-	BackupIp3        string `json:"backup_ip_3,omitempty"`
-	BackupIp4        string `json:"backup_ip_4,omitempty"`
-	BackupIp5        string `json:"backup_ip_5,omitempty"`
-	MonitoringRegion string `json:"monitoring_region,omitempty"`
-	Host             string `json:"host,omitempty"`
-	Port             string `json:"port,omitempty"`
-	Path             string `json:"path,omitempty"`
-	Content          string `json:"content,omitempty"`
-	QueryType        string `json:"query_type,omitempty"`
-	QueryResponse    string `json:"query_response,omitempty"`
-	CheckPeriod      string `json:"check_period,omitempty"`
-	NotificationMail string `json:"notification_mail,omitempty"`
-	DeactivateRecord string `json:"deactivate_record,omitempty"`
-	LatencyLimit     string `json:"latency_limit,omitempty"`
-	Timeout          string `json:"timeout,omitempty"`
-	State            string `json:"state,omitempty"`
-	CheckRegion      string `json:"checkregion,omitempty"`
-	HttpRequestType  string `json:"http_request_type,omitempty"`
+	Domain           string     `json:"domain-name"`
+	RecordId         string     `json:"record-id"`
+	FailoverType     string     `json:"check_type"`
+	DownEventHandler string     `json:"down_event_handler"`
+	UpEventHandler   string     `json:"up_event_handler"`
+	MainIP           string     `json:"main_ip"`
+	BackupIp1        string     `json:"backup_ip_1,omitempty"`
+	BackupIp2        string     `json:"backup_ip_2,omitempty"`
+	BackupIp3        string     `json:"backup_ip_3,omitempty"`
+	BackupIp4        string     `json:"backup_ip_4,omitempty"`
+	BackupIp5        string     `json:"backup_ip_5,omitempty"`
+	MonitoringRegion string     `json:"monitoring_region,omitempty"`
+	Host             string     `json:"host,omitempty"`
+	Port             CustomPort `json:"port,omitempty"`
+	Path             string     `json:"path,omitempty"`
+	Content          string     `json:"content,omitempty"`
+	QueryType        string     `json:"query_type,omitempty"`
+	QueryResponse    string     `json:"query_response,omitempty"`
+	CheckPeriod      string     `json:"check_period,omitempty"`
+	NotificationMail string     `json:"notification_mail,omitempty"`
+	LatencyLimit     string     `json:"latency_limit,omitempty"`
+	Timeout          string     `json:"timeout,omitempty"`
+	CheckRegion      string     `json:"checkregion,omitempty"`
+	HttpRequestType  string     `json:"http_request_type,omitempty"`
 }
 
 type FailoverData struct {
 	FailoverType     string        `json:"check_type"`
 	DownEventHandler string        `json:"down_event_handler"`
 	UpEventHandler   string        `json:"up_event_handler"`
-	Status           string        `json:"status,omitempty"`
 	MainIP           string        `json:"main_ip"`
 	BackupIp1        string        `json:"backup_ip_1,omitempty"`
 	BackupIp2        string        `json:"backup_ip_2,omitempty"`
@@ -441,57 +434,62 @@ type FailoverData struct {
 	CheckSettings    CheckSettings `json:"check_settings"`
 	CheckPeriod      string        `json:"check_period,omitempty"`
 	NotificationMail string        `json:"notification_mail,omitempty"`
-	State            string        `json:"state,omitempty"`
 	CheckRegion      string        `json:"checkregion,omitempty"`
-	DeactivateRecord string        `json:"deactivate_record,omitempty"`
-}
-
-type PingFailoverData struct {
-	ID               string `json:"id"`
-	Domain           string `json:"domain-name"`
-	RecordId         string `json:"record-id"`
-	FailoverType     string `json:"check_type"`
-	Timeout          string `json:"timeout"`
-	Status           string `json:"status,omitempty"`
-	DownEventHandler string `json:"down_event_handler"`
-	UpEventHandler   string `json:"up_event_handler"`
-	MainIP           string `json:"main_ip"`
-	State            string `json:"state,omitempty"`
-	DeactivateRecord string `json:"deactivate_record,omitempty"`
 }
 
 type ActivateFailover struct {
-	Authid           int    `json:"auth-id,omitempty"`
-	Subauthid        int    `json:"sub-auth-id,omitempty"`
-	Authpassword     string `json:"auth-password"`
-	ID               string `json:"id"`
-	Domain           string `json:"domain-name"`
-	RecordId         string `json:"record-id"`
-	Status           string `json:"status,omitempty"`
-	FailoverType     string `json:"check_type"`
-	DownEventHandler string `json:"down_event_handler"`
-	UpEventHandler   string `json:"up_event_handler"`
-	MainIP           string `json:"main_ip"`
-	BackupIp1        string `json:"backup_ip_1,omitempty"`
-	BackupIp2        string `json:"backup_ip_2,omitempty"`
-	BackupIp3        string `json:"backup_ip_3,omitempty"`
-	BackupIp4        string `json:"backup_ip_4,omitempty"`
-	BackupIp5        string `json:"backup_ip_5,omitempty"`
-	MonitoringRegion string `json:"monitoring_region,omitempty"`
-	Host             string `json:"host,omitempty"`
-	Port             string `json:"port,omitempty"`
-	Path             string `json:"path,omitempty"`
-	Content          string `json:"content,omitempty"`
-	QueryType        string `json:"query_type,omitempty"`
-	QueryResponse    string `json:"query_response,omitempty"`
-	CheckPeriod      string `json:"check_period,omitempty"`
-	NotificationMail string `json:"notification_mail,omitempty"`
-	State            string `json:"state,omitempty"`
-	DeactivateRecord string `json:"deactivate_record,omitempty"`
-	LatencyLimit     string `json:"latency_limit,omitempty"`
-	Timeout          string `json:"timeout,omitempty"`
-	CheckRegion      string `json:"checkregion,omitempty"`
-	HttpRequestType  string `json:"http_request_type,omitempty"`
+	Authid           int        `json:"auth-id,omitempty"`
+	Subauthid        int        `json:"sub-auth-id,omitempty"`
+	Authpassword     string     `json:"auth-password"`
+	ID               string     `json:"id"`
+	Domain           string     `json:"domain-name"`
+	RecordId         string     `json:"record-id"`
+	FailoverType     string     `json:"check_type"`
+	DownEventHandler string     `json:"down_event_handler"`
+	UpEventHandler   string     `json:"up_event_handler"`
+	MainIP           string     `json:"main_ip"`
+	BackupIp1        string     `json:"backup_ip_1,omitempty"`
+	BackupIp2        string     `json:"backup_ip_2,omitempty"`
+	BackupIp3        string     `json:"backup_ip_3,omitempty"`
+	BackupIp4        string     `json:"backup_ip_4,omitempty"`
+	BackupIp5        string     `json:"backup_ip_5,omitempty"`
+	MonitoringRegion string     `json:"monitoring_region,omitempty"`
+	Host             string     `json:"host,omitempty"`
+	Port             CustomPort `json:"port,omitempty"`
+	Path             string     `json:"path,omitempty"`
+	Content          string     `json:"content,omitempty"`
+	QueryType        string     `json:"query_type,omitempty"`
+	QueryResponse    string     `json:"query_response,omitempty"`
+	CheckPeriod      string     `json:"check_period,omitempty"`
+	NotificationMail string     `json:"notification_mail,omitempty"`
+	LatencyLimit     string     `json:"latency_limit,omitempty"`
+	Timeout          string     `json:"timeout,omitempty"`
+	CheckRegion      string     `json:"checkregion,omitempty"`
+	HttpRequestType  string     `json:"http_request_type,omitempty"`
+}
+
+// If the PORT is default it is returned as int but if it is not default
+// it is returned as string
+type CustomPort int
+
+func (cp *CustomPort) UnmarshalJSON(data []byte) error {
+	var intPort int
+	if err := json.Unmarshal(data, &intPort); err == nil {
+		*cp = CustomPort(intPort)
+		return nil
+	}
+
+	var strPort string
+	if err := json.Unmarshal(data, &strPort); err == nil {
+		intValue, err := strconv.Atoi(strPort)
+		if err != nil {
+			return err
+		}
+		*cp = CustomPort(intValue)
+		return nil
+	}
+
+	return fmt.Errorf("cannot unmarshal %s into CustomPort", string(data))
 }
 
 func (r ActivateFailover) create() (*resty.Response, error) {
@@ -500,12 +498,12 @@ func (r ActivateFailover) create() (*resty.Response, error) {
 }
 
 func (r ActivateFailover) update() (*resty.Response, error) {
-	const path = "/dns/mod-failover.json"
+	const path = "/dns/failover-modify.json"
 	return apireq(path, r)
 }
 
 func (r ActivateFailover) destroy() (*resty.Response, error) {
-	const path = "/dns/delete-failover.json"
+	const path = "/dns/failover-deactivate.json"
 	return apireq(path, r)
 }
 

@@ -745,9 +745,6 @@ func newActivateFailover(r Failover, a *Apiaccess) ActivateFailover {
 		QueryResponse:    r.CheckSettings.QueryResponse,
 		CheckPeriod:      r.CheckPeriod,
 		NotificationMail: r.NotificationMail,
-		State:            r.State,
-		Status:           r.Status,
-		DeactivateRecord: r.DeactivateRecord,
 		LatencyLimit:     r.CheckSettings.LatencyLimit,
 		Timeout:          r.CheckSettings.Timeout,
 		CheckRegion:      r.CheckRegion,
@@ -808,31 +805,24 @@ func (f Failover) Read(a *Apiaccess) (Failover, error) {
 	f.DownEventHandler = failoverData.DownEventHandler
 	f.UpEventHandler = failoverData.UpEventHandler
 	f.MainIP = failoverData.MainIP
-
-	if f.FailoverType == "1" {
-		f.DeactivateRecord = failoverData.DeactivateRecord
-		f.State = failoverData.State
-		f.Status = failoverData.Status
-		f.CheckSettings.Timeout = defaultIfEmpty(failoverData.CheckSettings.Timeout)
-	} else {
-		f.BackupIp1 = defaultIfEmpty(failoverData.BackupIp1)
-		f.BackupIp2 = defaultIfEmpty(failoverData.BackupIp2)
-		f.BackupIp3 = defaultIfEmpty(failoverData.BackupIp3)
-		f.BackupIp4 = defaultIfEmpty(failoverData.BackupIp4)
-		f.BackupIp5 = defaultIfEmpty(failoverData.BackupIp5)
-		f.MonitoringRegion = defaultIfEmpty(failoverData.MonitoringRegion)
-		f.CheckPeriod = defaultIfEmpty(failoverData.CheckPeriod)
-		f.CheckRegion = failoverData.CheckRegion
-		f.NotificationMail = defaultIfEmpty(failoverData.NotificationMail)
-		f.CheckSettings.Host = defaultIfEmpty(failoverData.CheckSettings.Host)
-		f.CheckSettings.Port = defaultIfEmpty(failoverData.CheckSettings.Port)
-		f.CheckSettings.Path = defaultIfEmpty(failoverData.CheckSettings.Path)
-		f.CheckSettings.Content = defaultIfEmpty(failoverData.CheckSettings.Content)
-		f.CheckSettings.QueryType = defaultIfEmpty(failoverData.CheckSettings.QueryType)
-		f.CheckSettings.QueryResponse = defaultIfEmpty(failoverData.CheckSettings.QueryResponse)
-		f.CheckSettings.LatencyLimit = defaultIfEmpty(failoverData.CheckSettings.LatencyLimit)
-		f.CheckSettings.HttpRequestType = defaultIfEmpty(failoverData.CheckSettings.HttpRequestType)
-	}
+	f.CheckSettings.Timeout = defaultIfEmpty(failoverData.CheckSettings.Timeout)
+	f.BackupIp1 = defaultIfEmpty(failoverData.BackupIp1)
+	f.BackupIp2 = defaultIfEmpty(failoverData.BackupIp2)
+	f.BackupIp3 = defaultIfEmpty(failoverData.BackupIp3)
+	f.BackupIp4 = defaultIfEmpty(failoverData.BackupIp4)
+	f.BackupIp5 = defaultIfEmpty(failoverData.BackupIp5)
+	f.MonitoringRegion = defaultIfEmpty(failoverData.MonitoringRegion)
+	f.CheckPeriod = defaultIfEmpty(failoverData.CheckPeriod)
+	f.CheckRegion = failoverData.CheckRegion
+	f.NotificationMail = defaultIfEmpty(failoverData.NotificationMail)
+	f.CheckSettings.Host = defaultIfEmpty(failoverData.CheckSettings.Host)
+	f.CheckSettings.Port = failoverData.CheckSettings.Port
+	f.CheckSettings.Path = defaultIfEmpty(failoverData.CheckSettings.Path)
+	f.CheckSettings.Content = defaultIfEmpty(failoverData.CheckSettings.Content)
+	f.CheckSettings.QueryType = defaultIfEmpty(failoverData.CheckSettings.QueryType)
+	f.CheckSettings.QueryResponse = defaultIfEmpty(failoverData.CheckSettings.QueryResponse)
+	f.CheckSettings.LatencyLimit = defaultIfEmpty(failoverData.CheckSettings.LatencyLimit)
+	f.CheckSettings.HttpRequestType = defaultIfEmpty(failoverData.CheckSettings.HttpRequestType)
 
 	fmt.Printf("Here is the returned record: %+v\n", f)
 
