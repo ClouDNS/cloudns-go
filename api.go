@@ -54,6 +54,23 @@ func (c Apiaccess) availablettl() (*resty.Response, error) {
 	return apireq(path, c)
 }
 
+type nslist struct {
+	Authid       int    `json:"auth-id,omitempty"`
+	Subauthid    int    `json:"sub-auth-id,omitempty"`
+	Authpassword string `json:"auth-password"`
+	DetailedInfo int    `json:"detailed-info,ommitempty"`
+}
+
+func (n nslist) lsns() (*resty.Response, error) {
+	const path = "/dns/available-name-servers.json"
+	return apireq(path, n)
+}
+
+type retns struct {
+	Type string `json:"type"`
+	Name string `json:"name"`
+}
+
 type rectypes struct {
 	Authid       int    `json:"auth-id,omitempty"`
 	Subauthid    int    `json:"sub-auth-id,omitempty"`
