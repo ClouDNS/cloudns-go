@@ -17,6 +17,18 @@ type Apiaccess struct {
 	Authpassword string `json:"auth-password"`
 }
 
+// Ns is the external representation of a nameserver
+type Ns struct {
+	Id            string `json:"id,omitempty"`
+	Type          string `json:"type"`
+	Name          string `json:"name"`
+	Ip4           string `json:"ip4"`
+	Ip6           string `json:"ip6"`
+	Location      string `json:"location"`
+	LocationCc    string `json:"location_cc"`
+	DdosProtected int    `json:"ddos_protected"`
+}
+
 // Zone is the external representation of a zone
 // check the ...zone types in api.go for details
 type Zone struct {
@@ -24,6 +36,35 @@ type Zone struct {
 	Ztype  string   `json:"zone-type"`
 	Ns     []string `json:"ns,omitempty"`
 	Master string   `json:"master-ip,omitempty"`
+}
+
+// Listns returns all ns servers available
+func (n Ns) List(a Apiaccess) ([]Ns, error) {
+	nsl := nslist{
+		Authid:       a.Authid,
+		Subauthid:    a.Subauthid,
+		Authpassword: a.Authpassword,
+		DetailedInfo: 1,
+	}
+	var rn []Ns
+	resp, err := nsl.lsns()
+	if err != nil {
+		return rn, err
+	}
+	errmsg, isapierr := checkapierr(resp.Body())
+	if isapierr {
+		return rn, errors.New(errmsg)
+	}
+	var intrn []retns
+	err = json.Unmarshal(resp.Body(), &intrn)
+	for _, ns := range intrn {
+		tmpns := Ns{
+			Type: ns.Type,
+			Name: ns.Name,
+		}
+		rn = append(rn, tmpns)
+	}
+	return rn, err
 }
 
 // Listzones returns all zones (max: 100)
