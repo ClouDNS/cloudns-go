@@ -889,3 +889,68 @@ func defaultIfEmpty(value string) string {
 	}
 	return value
 }
+
+func newDynamicUrlRequest(d DynamicUrl, a *Apiaccess) DynamicUrlRequest {
+	return DynamicUrlRequest{
+		Authid:       a.Authid,
+		Subauthid:    a.Subauthid,
+		Authpassword: a.Authpassword,
+		Domain:       d.Domain,
+		RecordId:     d.RecordId,
+	}
+}
+
+func (d DynamicUrl) apireqWithResponse(a *Apiaccess, url string) (DynamicUrlResponse, error) {
+	var dynUrl DynamicUrlResponse
+
+	req := newDynamicUrlRequest(d, a)
+	resp, err := apireq(url, req)
+	if err != nil {
+		return dynUrl, err
+	}
+
+	body := resp.Body()
+
+	if len(body) == 0 {
+		return dynUrl, errors.New("empty response body")
+	}
+	fmt.Printf("Raw response body: %s\n", string(body))
+
+	err = json.Unmarshal(body, &dynUrl)
+	if err != nil {
+		return dynUrl, fmt.Errorf("error unmarshalling response: %v", err)
+	}
+
+	dynUrl.Domain = d.Domain
+	dynUrl.RecordId = d.RecordId
+
+	fmt.Printf("Parsed Dynamic Url Data: %+v\n", dynUrl)
+
+	return dynUrl, nil
+}
+
+func (d DynamicUrl) ReadOrCreate(a *Apiaccess) (DynamicUrlResponse, error) {
+	return d.apireqWithResponse(a, "/dns/get-dynamic-url.json")
+}
+
+func (d DynamicUrl) Change(a *Apiaccess) (DynamicUrlResponse, error) {
+	return d.apireqWithResponse(a, "/dns/change-dynamic-url.json")
+}
+
+func (d DynamicUrl) Delete(a *Apiaccess) (DynamicUrlResponse, error) {
+	dynUrl := DynamicUrlResponse{
+		Domain:   d.Domain,
+		RecordId: d.RecordId,
+		Url:      "",
+	}
+
+	req := newDynamicUrlRequest(d, a)
+	resp, err := apireq("/dns/disable-dynamic-url.json", req)
+	if err == nil {
+		errmsg, isapierr := checkapierr(resp.Body())
+		if isapierr {
+			return dynUrl, errors.New(errmsg)
+		}
+	}
+	return dynUrl, err
+}

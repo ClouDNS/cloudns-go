@@ -485,6 +485,25 @@ type ActivateFailover struct {
 	HttpRequestType  string     `json:"http_request_type,omitempty"`
 }
 
+type DynamicUrl struct {
+	Domain   string `json:"domain-name"`
+	RecordId string `json:"record-id"`
+}
+
+type DynamicUrlRequest struct {
+	Authid       int    `json:"auth-id,omitempty"`
+	Subauthid    int    `json:"sub-auth-id,omitempty"`
+	Authpassword string `json:"auth-password"`
+	Domain       string `json:"domain-name"`
+	RecordId     string `json:"record-id"`
+}
+
+type DynamicUrlResponse struct {
+	Domain   string `json:"domain-name"`
+	RecordId string `json:"record-id"`
+	Url      string `json:"url"`
+}
+
 // If the PORT is default it is returned as int but if it is not default
 // it is returned as string
 type CustomPort int
