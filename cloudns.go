@@ -319,7 +319,7 @@ func (z Zone) Read(a *Apiaccess) (Zone, error) {
 
 // Update a zone [dummy]
 func (z Zone) Update(a *Apiaccess) (Zone, error) {
-	err := errors.New("Zone updates are currently not implemented, see https://github.com/sta-travel/cloudns-go/limitations.md")
+	err := errors.New("Zone updates are currently not implemented")
 	return z, err
 }
 
