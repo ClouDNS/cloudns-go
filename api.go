@@ -4,6 +4,7 @@ package cloudns
 import (
 	"encoding/json"
 	"fmt"
+	"net/http"
 	"strconv"
 	"strings"
 
@@ -16,7 +17,7 @@ const (
 
 func apireq(path string, body interface{}) (*resty.Response, error) {
 	fullurl := strings.Join([]string{apiurl, path}, "")
-	client := resty.New()
+	client := resty.New().SetTransport(http.DefaultTransport)
 	client.R().SetHeader("Content-Type", "application/json")
 	client.R().SetHeader("Accept", "application/json")
 	client.R().SetHeader("User-Agent", "github.com/ClouDNS/cloudns-go")

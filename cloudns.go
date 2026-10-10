@@ -914,7 +914,6 @@ func (d DynamicUrl) apireqWithResponse(a *Apiaccess, url string) (DynamicUrlResp
 	if len(body) == 0 {
 		return dynUrl, errors.New("empty response body")
 	}
-	fmt.Printf("Raw response body: %s\n", string(body))
 
 	err = json.Unmarshal(body, &dynUrl)
 	if err != nil {
@@ -923,8 +922,6 @@ func (d DynamicUrl) apireqWithResponse(a *Apiaccess, url string) (DynamicUrlResp
 
 	dynUrl.Domain = d.Domain
 	dynUrl.RecordId = d.RecordId
-
-	fmt.Printf("Parsed Dynamic Url Data: %+v\n", dynUrl)
 
 	return dynUrl, nil
 }
