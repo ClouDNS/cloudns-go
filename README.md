@@ -143,3 +143,25 @@ if rderr == nil {
     spew.Println(rderr)
 }
 ```
+## DNSSEC
+
+DNSSEC methods accept a context and the same credentials as other zone operations:
+
+```go
+zone := cloudns.Zone{Domain: "example.com"}
+available, err := zone.DNSSECAvailable(ctx, &credentials)
+// Check err and available before enabling signing.
+err = zone.ActivateDNSSEC(ctx, &credentials)
+err = zone.SetDNSSECOptOut(ctx, &credentials, false)
+details, err := zone.DNSSEC(ctx, &credentials)
+// details.DS / details.DSRecords / details.DNSKEY can be used at the registrar.
+err = zone.DeactivateDNSSEC(ctx, &credentials)
+```
+
+Handle each error before continuing. Activation generates keys asynchronously;
+call `DNSSEC` until `Enabled` is true and DS/DNSKEY records are populated.
+`DNSSEC` returns a disabled state for the documented `dnssec_not_active` response,
+and preserves authentication and missing-zone errors. Remove DS records from the
+parent zone and allow their caches to expire before deactivating signing.
+
+API reference: [DNSSEC](https://www.cloudns.net/wiki/article/334/).
